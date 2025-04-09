@@ -1,0 +1,44 @@
+"Manus, please create a responsive, user-friendly website that hosts an 8-question personality quiz. Each question should have four options (A, B, C, D), leading to one of four distinct results based on the most selected answer type. After completing the quiz, users should be presented with their result and a call-to-action button labeled 'Learn how to fix your broken window 🧹'. Clicking this button should initiate a Stripe Checkout session for a digital product (PDF). Upon successful payment, users should be redirected to a confirmation page where they can download the PDF.​
+
+Ensure the website is optimized for all devices and deploy it to a free hosting platform, providing me with the accessible URL upon completion."​
+
+Steps Manus AI Will Undertake:
+
+Quiz Development:
+
+Design an interactive 8-question quiz with four answer choices per question.​
+FlexOS
+
+Implement logic to determine the user's predominant answer type (A, B, C, or D) and display the corresponding result.​
+
+Stripe Integration:
+
+Incorporate Stripe Checkout to facilitate secure payments for the digital product.​
+Medium
++4
+Gist
++4
+FlexOS
++4
+
+Redirect users to a confirmation page post-payment with a download link for the PDF.​
+
+Responsive Design:
+
+Ensure the website is fully responsive, providing an optimal experience across desktops, tablets, and smartphones.​
+
+Deployment:
+
+Host the website on a free platform such as Vercel or Netlify.​
+
+Provide a publicly accessible URL upon successful deployment.​
+
+Additional Considerations:
+
+Environment Variables: Utilize environment variables to securely manage Stripe API keys.​
+
+Styling: Apply clean and minimalistic styling, possibly using Tailwind CSS, to enhance user experience.​
+
+Progress Indicators: Incorporate a progress bar to inform users of their advancement through the quiz.​
+
+Animations: Add subtle animations to transition between questions smoothly.

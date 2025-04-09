@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personality Quiz</title>
+    <style>
+        /* Critical inline styles to ensure basic visibility */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        body.dark-mode {
+            background-color: #222;
+            color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            min-height: 100vh;
+        }
+        body.dark-mode .container {
+            background-color: #333;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        header {
+            background-color: #4caf50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .btn {
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .progress-container {
+            height: 10px;
+            background-color: #e0e0e0;
+            margin-top: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #ffeb3b;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .start-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        /* Style for theme toggle button */
+        .theme-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            outline: none;
+            padding: 5px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Personality Quiz</h1>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </header>
+        
+        <main>
+            <div id="quiz-container">
+                <!-- Quiz questions will be loaded here -->
+                <div class="start-screen" id="start-screen">
+                    <h2>Welcome to the Personality Quiz!</h2>
+                    <p>Answer 8 questions to discover your personality type.</p>
+                    <button id="start-button" class="btn">Start Quiz</button>
+                </div>
+            </div>
+            
+            <div id="results-container" style="display: none;">
+                <!-- Results will be displayed here -->
+            </div>
+        </main>
+        
+        <footer>
+            <p>&copy; 2025 Personality Quiz</p>
+        </footer>
+    </div>
+
+    <script src="theme-toggle.js"></script>
+    <script src="quiz-data.js"></script>
+    <script src="quiz.js"></script>
+    <script src="stripe-integration.js"></script>
+</body>
+</html>

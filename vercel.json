@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "css/**", "use": "@vercel/static" },
+    { "src": "js/**", "use": "@vercel/static" },
+    { "src": "images/**", "use": "@vercel/static" },
+    { "src": "downloads/**", "use": "@vercel/static" },
+    { "src": "server/**/*.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/create-checkout-session", "dest": "server/server.js" },
+    { "src": "/verify-session/(.*)", "dest": "server/server.js" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ],
+  "env": {
+    "STRIPE_SECRET_KEY": "@stripe-secret-key",
+    "STRIPE_PUBLISHABLE_KEY": "@stripe-publishable-key"
+  }
+}
