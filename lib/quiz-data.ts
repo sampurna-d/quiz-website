@@ -15,6 +15,7 @@ export const quizData: QuizDataType = {
       ],
     },
     // Question 2
+    
     {
       id: 2,
       text: "You have a big task to do. What usually derails you first?",
