@@ -9,12 +9,8 @@
     { "src": "server/**/*.js", "use": "@vercel/node" }
   ],
   "routes": [
-    { "src": "/create-checkout-session", "dest": "server/server.js" },
-    { "src": "/verify-session/(.*)", "dest": "server/server.js" },
+    { "src": "/create-checkout-session", "dest": "server.js" },
+    { "src": "/verify-session/(.*)", "dest": "server.js" },
     { "src": "/(.*)", "dest": "/$1" }
-  ],
-  "env": {
-    "STRIPE_SECRET_KEY": "@stripe-secret-key",
-    "STRIPE_PUBLISHABLE_KEY": "@stripe-publishable-key"
-  }
+  ]
 }
