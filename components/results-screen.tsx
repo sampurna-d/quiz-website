@@ -7,6 +7,7 @@ import { quizData } from "@/lib/quiz-data"
 import confetti from "canvas-confetti"
 import { ListChecks } from "lucide-react"
 
+
 interface ResultsScreenProps {
   userAnswers: string[]
 }
