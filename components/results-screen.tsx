@@ -5,7 +5,9 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { quizData } from "@/lib/quiz-data"
 import confetti from "canvas-confetti"
-import { ListChecks } from "lucide-react"
+import { ListChecks, Loader2 } from "lucide-react"
+import Image from "next/image"
+import { useRouter } from "next/navigation"
 
 interface ResultsScreenProps {
   userAnswers: string[]
@@ -13,6 +15,8 @@ interface ResultsScreenProps {
 
 export function ResultsScreen({ userAnswers }: ResultsScreenProps) {
   const [resultType, setResultType] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     // Calculate result
@@ -95,12 +99,41 @@ export function ResultsScreen({ userAnswers }: ResultsScreenProps) {
 
   const percentages = calculatePercentages()
 
-  const initiateStripeCheckout = () => {
-    console.log(`Initiating Stripe checkout for archetype: ${resultType}`)
-    alert("Stripe integration to purchase the PDF guide will be implemented soon.")
+  const initiateStripeCheckout = async () => {
+    try {
+      setIsLoading(true)
+      
+      // Call our API route to create a Stripe checkout session
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resultType,
+          answers: userAnswers,
+        }),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+      
+      const { url } = await response.json()
+      
+      // Redirect to Stripe Checkout
+      router.push(url)
+    } catch (error) {
+      console.error('Error initiating checkout:', error)
+      alert('There was an error initiating the checkout process. Please try again.')
+      setIsLoading(false)
+    }
   }
 
   if (!result) return <div>Calculating your results...</div>
+
+  const imageName = `${result.title.replace(/\s+/g, '')}.png`
+  const imagePath = `/${imageName}`
 
   return (
     <motion.div
@@ -113,9 +146,17 @@ export function ResultsScreen({ userAnswers }: ResultsScreenProps) {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 10 }}
-        className="mb-6 flex h-40 w-full items-center justify-center rounded-lg bg-muted text-muted-foreground"
+        className="mb-6 w-full max-w-sm mx-auto"
       >
-        <span>[Image Placeholder for {result.title}]</span>
+        <Image
+          src={imagePath}
+          alt={`Image representing ${result.title}`}
+          width={0}
+          height={0}
+          sizes="100vw"
+          style={{ width: '100%', height: 'auto' }}
+          priority
+        />
       </motion.div>
 
       <motion.h2
@@ -163,10 +204,17 @@ export function ResultsScreen({ userAnswers }: ResultsScreenProps) {
       >
         <Button
           onClick={initiateStripeCheckout}
+          disabled={isLoading}
           size="lg"
           className="bg-gradient-to-r from-blue-500 to-cyan-500 px-8 py-6 text-lg font-semibold text-white"
         >
-          Get Your Personalized Fix Guide (PDF) ✨
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...
+            </>
+          ) : (
+            "Get Your Personalized Fix Guide ✨"
+          )}
         </Button>
       </motion.div>
     </motion.div>
