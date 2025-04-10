@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { supabase } from '@/lib/supabase';
 
 // Type definitions for the request
 interface CheckoutRequest {
@@ -47,17 +46,6 @@ export async function POST(request: NextRequest) {
         resultType,
       },
     });
-    
-    // Store information in Supabase
-    const { error } = await supabase.from('quiz_results').insert({
-      result_type: resultType,
-      answers: answers,
-    });
-    
-    if (error) {
-      console.error('Error storing quiz results:', error);
-      // Continue with checkout even if database storage fails
-    }
     
     // Return the session ID
     return NextResponse.json({ id: session.id, url: session.url });

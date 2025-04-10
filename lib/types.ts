@@ -34,7 +34,8 @@ export interface CheckoutResponse {
   url: string
 }
 
-// Supabase database types
+// Supabase database types - REMOVED
+/*
 export interface QuizResult {
   id: string
   user_id?: string
@@ -62,3 +63,4 @@ export interface Download {
   expires_at: string
   created_at: string
 }
+*/

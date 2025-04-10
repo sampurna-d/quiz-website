@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { supabase } from '@/lib/supabase';
+// import { supabase } from '@/lib/supabase'; // Removed Supabase import
 import Stripe from 'stripe';
 
 // This is your Stripe CLI webhook secret for testing your endpoint locally
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-// Map Stripe payment status to Supabase allowed values
+// Map Stripe payment status to Supabase allowed values - REMOVED as Supabase integration is removed
+/*
 function mapPaymentStatus(stripeStatus: string): string {
   // Map Stripe payment status to values accepted by Supabase
   const statusMap: Record<string, string> = {
@@ -19,6 +20,7 @@ function mapPaymentStatus(stripeStatus: string): string {
   
   return statusMap[stripeStatus] || 'pending';
 }
+*/
 
 export async function POST(request: NextRequest) {
   const payload = await request.text();
@@ -84,63 +86,20 @@ async function handleCompletedCheckout(session: Stripe.Checkout.Session) {
     return;
   }
 
-  try {
-    // Check if this session is already processed
-    const { data: existingPurchase } = await supabase
-      .from('purchases')
-      .select('id')
-      .eq('stripe_session_id', sessionId)
-      .single();
-    
-    if (existingPurchase) {
-      console.log(`Session ${sessionId} already processed, skipping`);
-      return;
-    }
-
-    // Map the Stripe payment status to a value that's valid for our database
-    const dbPaymentStatus = mapPaymentStatus(stripePaymentStatus);
-    console.log(`Mapped payment status: ${stripePaymentStatus} -> ${dbPaymentStatus}`);
-
-    // Store purchase information in Supabase
-    console.log('Creating purchase record in Supabase');
-    const { data: purchase, error: purchaseError } = await supabase
-      .from('purchases')
-      .insert({
-        stripe_session_id: sessionId,
-        result_type: resultType,
-        payment_status: dbPaymentStatus,
-        amount: amount,
-      })
-      .select()
-      .single();
-
-    if (purchaseError) {
-      console.error('Error storing purchase:', purchaseError);
-      return;
-    }
-
-    // Generate download link
-    const pdfFileName = getPdfFileNameByResultType(resultType);
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 30); // Set expiry to 30 days from now
-
-    // Store download information
-    console.log('Creating download record in Supabase');
-    const { error: downloadError } = await supabase.from('downloads').insert({
-      purchase_id: purchase.id,
-      download_link: pdfFileName,
-      download_count: 0,
-      expires_at: expiresAt.toISOString(),
-    });
-
-    if (downloadError) {
-      console.error('Error creating download record:', downloadError);
-    } else {
-      console.log('Successfully processed session', sessionId);
-    }
-  } catch (error) {
-    console.error('Error in handleCompletedCheckout:', error);
+  // Removed Supabase logic for checking existing purchase and storing purchase/download info
+  // Stripe already stores this information, so we don't need a separate database.
+  
+  // Check if payment was successful
+  if (stripePaymentStatus === 'paid') {
+    console.log(`Payment successful for session ${sessionId}. Customer email: ${session.customer_details?.email}`);
+    // Potentially send confirmation email here or trigger other post-purchase actions if needed.
+  } else {
+    console.log(`Payment status for session ${sessionId}: ${stripePaymentStatus}. No action taken.`);
   }
+  
+  // We no longer need to generate or store download links here.
+  // The confirmation page will handle providing the correct download link based on the result type.
+  console.log('Successfully processed webhook for session', sessionId);
 }
 
 function getPdfFileNameByResultType(resultType: string): string {

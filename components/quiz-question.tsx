@@ -69,7 +69,7 @@ export function QuizQuestion({
               className={cn(
                 "flex cursor-pointer items-center rounded-lg border p-4 transition-all",
                 selectedOption === option.id
-                  ? "border-primary bg-primary/10 text-primary-foreground"
+                  ? "border-primary bg-primary/10"
                   : "border-border bg-card hover:border-primary/50 hover:bg-accent",
               )}
               onClick={() => handleOptionSelect(option.id)}
@@ -77,9 +77,7 @@ export function QuizQuestion({
               <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-2xl">
                 {option.emoji}
               </div>
-              <span className="text-lg">
-                <span className="font-medium">{option.id}.</span> {option.text}
-              </span>
+              <span className="text-lg">{option.text}</span>
             </motion.div>
           ))}
         </AnimatePresence>

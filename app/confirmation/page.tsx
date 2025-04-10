@@ -5,22 +5,16 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Check, Download, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { supabase } from "@/lib/supabase"
-import { checkTablesExist, createPurchaseRecord, createDownloadRecord } from "@/lib/db-utils"
+// Removed Supabase and db-utils imports as they are no longer needed
+// import { supabase } from "@/lib/supabase"
+// import { checkTablesExist, createPurchaseRecord, createDownloadRecord } from "@/lib/db-utils"
 
-// Map Stripe payment status to Supabase allowed values
+// Removed mapPaymentStatus as it's no longer needed for Supabase
+/*
 function mapPaymentStatus(stripeStatus: string): string {
-  // Map Stripe payment status to values accepted by Supabase
-  const statusMap: Record<string, string> = {
-    'paid': 'succeeded',
-    'unpaid': 'pending',
-    'no_payment_required': 'succeeded',
-    'free': 'succeeded',
-    'canceled': 'failed'
-  };
-  
-  return statusMap[stripeStatus] || 'pending';
+  // ... (mapping logic removed) ...
 }
+*/
 
 // Define a fallback component for Suspense
 function ConfirmationLoading() {
@@ -46,88 +40,52 @@ function ConfirmationContent() {
   } | null>(null)
 
   useEffect(() => {
-    async function verifyPayment() {
+    async function verifyPaymentAndGetDownload() {
       try {
         if (!sessionId) {
-          // If no session ID, redirect immediately. 
-          // This check happens after Suspense resolves and searchParams are available.
+          // If no session ID, redirect immediately.
           router.push("/") 
           return
         }
 
         setLoading(true)
         
-        // Check if the required tables exist
-        const tables = await checkTablesExist()
-        console.log("Tables exist check:", tables)
+        // Fetch Stripe session details directly using the session ID
+        const response = await fetch(`/api/stripe/session?session_id=${sessionId}`)
         
-        if (!tables.allExist) {
-          console.log("Required database tables don't exist, redirecting to setup")
-          // Redirect to setup page or show error
-          window.open("/api/setup-db", "_blank")
-          throw new Error("Database tables not set up. Please contact support.")
+        if (!response.ok) {
+          const errorData = await response.json()
+          // Throw a user-friendly error based on Stripe's response
+          throw new Error(errorData.error || "Failed to retrieve payment details. Please contact support.")
         }
-        
-        // First, try to fetch payment details from the API
-        const response = await fetch(`/api/downloads/verify?session_id=${sessionId}`)
-        
-        // If the verification endpoint succeeds, use its response
-        if (response.ok) {
-          const data = await response.json()
-          setDownloadInfo({
-            link: data.downloadLink,
-            resultType: data.resultType
-          })
-          // No need to return here, let it fall through to finally
-        } else {
-          // If the verification fails, try to create the purchase and download records directly
-          // This is a fallback for when webhooks haven't processed the payment yet
-          console.log("API verification failed, attempting direct creation")
           
-          // First fetch session data from the Stripe checkout API
-          const stripeResponse = await fetch(`/api/stripe/session?session_id=${sessionId}`)
+        const stripeData = await response.json()
           
-          if (!stripeResponse.ok) {
-            const errorData = await stripeResponse.json()
-            throw new Error(errorData.error || "Payment verification failed. Please contact support.")
-          }
+        // Check payment status directly from Stripe session data
+        const paymentStatus = stripeData.payment_status
           
-          const stripeData = await stripeResponse.json()
-          
-          // Check payment status from Stripe session data
-          const paymentStatus = mapPaymentStatus(stripeData.payment_status)
-          
-          if (paymentStatus !== 'succeeded') {
-             // Handle cases where payment is not yet complete or failed
-             if (paymentStatus === 'pending') {
-               // Optionally, you could implement polling or show a waiting message
-               throw new Error("Payment is still processing. Please wait a few moments and refresh, or contact support if the issue persists.")
-             } else {
-               throw new Error("Payment was not successful. Please contact support or try again.")
-             }
-          }
-          
-          const resultType = stripeData.metadata?.resultType || 'A' // Default to 'A' if not found
-          
-          // Create purchase record in Supabase using utility function
-          const purchase = await createPurchaseRecord(
-            sessionId,
-            resultType,
-            stripeData.amount_total,
-            paymentStatus // Pass the mapped status
-          )
-          
-          // Generate download link
-          const pdfFileName = getPdfFileNameByResultType(resultType)
-          
-          // Create download record using utility function
-          await createDownloadRecord(purchase.id, pdfFileName)
-          
-          setDownloadInfo({
-            link: `/downloads/${pdfFileName}`,
-            resultType: resultType
-          })
+        if (paymentStatus !== 'paid' && paymentStatus !== 'no_payment_required') {
+           // Handle cases where payment is not yet complete or failed
+           if (paymentStatus === 'unpaid') {
+             // Handle pending payments
+             throw new Error("Payment is still processing. Please wait a few moments and refresh, or contact support if the issue persists.")
+           } else {
+             // Handle other unsuccessful statuses (e.g., canceled)
+             throw new Error("Payment was not successful. Please contact support or try again.")
+           }
         }
+          
+        // Get the result type from metadata (default if missing)
+        const resultType = stripeData.metadata?.resultType || 'A' 
+          
+        // Generate the correct PDF file name based on the result type
+        const pdfFileName = getPdfFileNameByResultType(resultType)
+          
+        // Set the download information directly
+        setDownloadInfo({
+          link: `/downloads/${pdfFileName}`, // Construct the download link
+          resultType: resultType
+        })
         
       } catch (error: any) {
         console.error("Error verifying payment:", error)
@@ -139,18 +97,13 @@ function ConfirmationContent() {
     
     // Only run verifyPayment if sessionId is present
     if (sessionId) {
-      verifyPayment()
+      verifyPaymentAndGetDownload() // Renamed the function for clarity
     } else {
-      // Handle the case where sessionId is null or undefined after Suspense resolves
-      // This might happen if the user navigates directly without a session_id
-      // We already redirect inside verifyPayment, but adding a check here can prevent unnecessary state updates
        console.log("No session ID found in URL parameters.")
-       // Redirect immediately if no session ID is present after client-side load
-       router.push("/")
+       router.push("/") // Redirect if no session ID is present
     }
 
-  // Add router to dependency array as it's used inside useEffect
-  }, [sessionId, router]) 
+  }, [sessionId, router]) // Keep dependencies
   
   const getResultTitle = (resultType: string) => {
     const titles: Record<string, string> = {
@@ -169,7 +122,7 @@ function ConfirmationContent() {
       'C': 'multitask-monster-fix-guide.pdf',
       'D': 'chaos-starter-fix-guide.pdf',
     }
-    return fileNames[resultType] || 'fix-broken-window-guide.pdf'
+    return fileNames[resultType as keyof typeof fileNames] || 'fix-broken-window-guide.pdf' // Ensure fallback
   }
   
   // Display loading state specific to data fetching
@@ -220,9 +173,10 @@ function ConfirmationContent() {
             </h2>
             
             <p className="mb-6 text-sm text-muted-foreground">
-              Click the button below to download your personalized guide on fixing your broken window.
+              Click the button below to download your personalized guide.
             </p>
             
+            {/* Use the download link directly */}
             <Button asChild className="mb-4 w-full" size="lg">
               <a href={downloadInfo.link} download>
                 <Download className="mr-2 h-4 w-4" /> Download Your Guide
@@ -231,11 +185,12 @@ function ConfirmationContent() {
             
             <div className="mt-6 rounded-md bg-muted p-4 text-sm">
               <p className="font-medium">What's included in your guide:</p>
+              {/* Keep the descriptive list */}
               <ul className="mt-2 list-inside list-disc space-y-1 pl-1 text-muted-foreground">
-                <li>Step-by-step instructions for fixing your broken window</li>
+                <li>Step-by-step instructions based on your quiz results</li>
                 <li>Tools and materials checklist</li>
-                <li>Tips for preventing future window damage</li>
-                <li>Personalized recommendations based on your quiz results</li>
+                <li>Tips for preventing future issues</li>
+                <li>Personalized recommendations</li>
               </ul>
             </div>
           </>
@@ -251,7 +206,8 @@ function ConfirmationContent() {
   )
 }
 
-// The main export now wraps ConfirmationContent in Suspense
+
+// Main Page component using Suspense
 export default function ConfirmationPage() {
   return (
     <Suspense fallback={<ConfirmationLoading />}>

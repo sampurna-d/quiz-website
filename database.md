@@ -2,29 +2,13 @@
 
 This file documents the database structure for the Quiz Website.
 
-## Supabase Tables
+## Database Usage
 
-### quiz_results
-- `id`: uuid (primary key, auto-generated)
-- `user_id`: uuid (optional, for authenticated users)
-- `result_type`: varchar (A, B, C, D - the quiz result type)
-- `answers`: jsonb (array of answers)
-- `created_at`: timestamp with time zone (default: now())
+This application **no longer uses a dedicated database** (like Supabase).
 
-### purchases
-- `id`: uuid (primary key, auto-generated)
-- `user_id`: uuid (optional, for authenticated users)
-- `result_type`: varchar (quiz result type)
-- `stripe_session_id`: varchar (Stripe checkout session ID)
-- `payment_status`: varchar (succeeded, pending, failed)
-- `amount`: integer (payment amount in cents)
-- `created_at`: timestamp with time zone (default: now())
-- `updated_at`: timestamp with time zone (default: now())
+Customer and purchase information is managed by **Stripe**.
 
-### downloads
-- `id`: uuid (primary key, auto-generated)
-- `purchase_id`: uuid (references purchases.id)
-- `download_link`: varchar (secure link to the PDF file)
-- `download_count`: integer (number of times downloaded)
-- `expires_at`: timestamp with time zone (when the download link expires)
-- `created_at`: timestamp with time zone (default: now()) 
+- **Customer Information**: Stored within Stripe Customer objects, linked to payments.
+- **Purchase Details**: Handled via Stripe Checkout Sessions and Payment Intents.
+- **Quiz Results**: Quiz results (like result type 'A', 'B', etc.) are passed as metadata during the Stripe Checkout process and retrieved on the confirmation page to provide the correct download link.
+- **Download Links**: Generated dynamically on the confirmation page based on the quiz result type retrieved from Stripe session metadata. The PDF files are served statically.
