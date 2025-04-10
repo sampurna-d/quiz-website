@@ -83,7 +83,7 @@ export async function getAllowedPaymentStatuses(): Promise<string[]> {
 /**
  * Creates a purchase record directly in Supabase
  */
-export async function createPurchaseRecord(sessionId: string, resultType: string, amount: number) {
+export async function createPurchaseRecord(sessionId: string, resultType: string, amount: number, paymentStatus: string) {
   try {
     // Check if record already exists
     const { data: existingPurchase } = await supabase
