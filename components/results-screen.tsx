@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { quizData } from "@/lib/quiz-data"
+import { ACTIVE_QUIZ_TYPE, getResultImagePath } from "@/lib/config"
+import { calculateResultType, calculateResultPercentages } from "@/lib/utils/quiz-utils"
 import confetti from "canvas-confetti"
 import { ListChecks, Loader2 } from "lucide-react"
 import Image from "next/image"
@@ -19,31 +21,8 @@ export function ResultsScreen({ userAnswers }: ResultsScreenProps) {
   const router = useRouter()
 
   useEffect(() => {
-    // Calculate result
-    const answerCounts: Record<string, number> = {
-      A: 0,
-      B: 0,
-      C: 0,
-      D: 0,
-    }
-
-    userAnswers.forEach((answer) => {
-      if (answer) {
-        answerCounts[answer]++
-      }
-    })
-
-    // Find predominant type
-    let predominantType = "A"
-    let maxCount = 0
-
-    for (const [type, count] of Object.entries(answerCounts)) {
-      if (count > maxCount) {
-        maxCount = count
-        predominantType = type
-      }
-    }
-
+    // Calculate result using our utility function
+    const predominantType = calculateResultType(userAnswers)
     setResultType(predominantType)
 
     // Trigger confetti effect
@@ -54,50 +33,10 @@ export function ResultsScreen({ userAnswers }: ResultsScreenProps) {
     })
   }, [userAnswers])
 
-  // Get emoji for result type
-  const getResultEmoji = (type: string) => {
-    switch (type) {
-      case "A":
-        return "🔍"
-      case "B":
-        return "⚡"
-      case "C":
-        return "👥"
-      case "D":
-        return "📝"
-      default:
-        return "🔍"
-    }
-  }
-
   const result = resultType ? quizData.results[resultType] : null
 
-  // Calculate percentages for each type
-  const calculatePercentages = () => {
-    const answerCounts: Record<string, number> = {
-      A: 0,
-      B: 0,
-      C: 0,
-      D: 0,
-    }
-
-    userAnswers.forEach((answer) => {
-      if (answer) {
-        answerCounts[answer]++
-      }
-    })
-
-    const total = userAnswers.length
-
-    return {
-      A: Math.round((answerCounts["A"] / total) * 100),
-      B: Math.round((answerCounts["B"] / total) * 100),
-      C: Math.round((answerCounts["C"] / total) * 100),
-      D: Math.round((answerCounts["D"] / total) * 100),
-    }
-  }
-
-  const percentages = calculatePercentages()
+  // Calculate percentages using our utility function
+  const percentages = calculateResultPercentages(userAnswers)
 
   const initiateStripeCheckout = async () => {
     try {
@@ -132,8 +71,8 @@ export function ResultsScreen({ userAnswers }: ResultsScreenProps) {
 
   if (!result) return <div>Calculating your results...</div>
 
-  const imageName = `${result.title.replace(/\s+/g, '')}.png`
-  const imagePath = `/${imageName}`
+  // Get image path from config
+  const imagePath = getResultImagePath(ACTIVE_QUIZ_TYPE, resultType)
 
   return (
     <motion.div

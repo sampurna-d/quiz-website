@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 // import { supabase } from '@/lib/supabase'; // Removed Supabase import
 import Stripe from 'stripe';
+import { ACTIVE_QUIZ_TYPE, getPdfFilePath } from '@/lib/config';
 
 // This is your Stripe CLI webhook secret for testing your endpoint locally
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -97,17 +98,9 @@ async function handleCompletedCheckout(session: Stripe.Checkout.Session) {
     console.log(`Payment status for session ${sessionId}: ${stripePaymentStatus}. No action taken.`);
   }
   
-  // We no longer need to generate or store download links here.
-  // The confirmation page will handle providing the correct download link based on the result type.
+  // Use the config helper to get the correct PDF file name
+  const pdfFileName = getPdfFilePath(ACTIVE_QUIZ_TYPE, resultType);
+  console.log(`PDF file for download: ${pdfFileName}`);
+  
   console.log('Successfully processed webhook for session', sessionId);
-}
-
-function getPdfFileNameByResultType(resultType: string): string {
-  const fileNames = {
-    'A': 'doom-scroller-fix-guide.pdf',
-    'B': 'overthinker-fix-guide.pdf',
-    'C': 'multitask-monster-fix-guide.pdf',
-    'D': 'chaos-starter-fix-guide.pdf',
-  };
-  return fileNames[resultType as keyof typeof fileNames] || 'fix-broken-window-guide.pdf';
 } 

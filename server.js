@@ -70,7 +70,7 @@ app.get('/verify-session/:sessionId', async (req, res) => {
     if (session.payment_status === 'paid') {
       res.json({ 
         success: true, 
-        downloadUrl: '/downloads/fix-broken-window-guide.pdf' 
+        downloadUrl: '/downloads/doom-scroller-fix-guide.pdf' 
       });
     } else {
       res.status(400).json({ success: false, message: 'Payment not completed' });

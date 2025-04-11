@@ -5,16 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Check, Download, Loader2 } from "lucide-react"
 import Link from "next/link"
-// Removed Supabase and db-utils imports as they are no longer needed
-// import { supabase } from "@/lib/supabase"
-// import { checkTablesExist, createPurchaseRecord, createDownloadRecord } from "@/lib/db-utils"
-
-// Removed mapPaymentStatus as it's no longer needed for Supabase
-/*
-function mapPaymentStatus(stripeStatus: string): string {
-  // ... (mapping logic removed) ...
-}
-*/
+import { ACTIVE_QUIZ_TYPE, getResultTitle, getPdfFilePath, ROUTES } from "@/lib/config"
 
 // Define a fallback component for Suspense
 function ConfirmationLoading() {
@@ -44,7 +35,7 @@ function ConfirmationContent() {
       try {
         if (!sessionId) {
           // If no session ID, redirect immediately.
-          router.push("/") 
+          router.push(ROUTES.HOME) 
           return
         }
 
@@ -78,8 +69,8 @@ function ConfirmationContent() {
         // Get the result type from metadata (default if missing)
         const resultType = stripeData.metadata?.resultType || 'A' 
           
-        // Generate the correct PDF file name based on the result type
-        const pdfFileName = getPdfFileNameByResultType(resultType)
+        // Generate the correct PDF file name based on the result type using config
+        const pdfFileName = getPdfFilePath(ACTIVE_QUIZ_TYPE, resultType)
           
         // Set the download information directly
         setDownloadInfo({
@@ -100,30 +91,10 @@ function ConfirmationContent() {
       verifyPaymentAndGetDownload() // Renamed the function for clarity
     } else {
        console.log("No session ID found in URL parameters.")
-       router.push("/") // Redirect if no session ID is present
+       router.push(ROUTES.HOME) // Redirect if no session ID is present
     }
 
   }, [sessionId, router]) // Keep dependencies
-  
-  const getResultTitle = (resultType: string) => {
-    const titles: Record<string, string> = {
-      "A": "Doom Scroller",
-      "B": "Overthinker",
-      "C": "Multitask Monster",
-      "D": "Chaos Starter"
-    }
-    return titles[resultType] || "Personalized"
-  }
-  
-  function getPdfFileNameByResultType(resultType: string): string {
-    const fileNames: Record<string, string> = {
-      'A': 'doom-scroller-fix-guide.pdf',
-      'B': 'overthinker-fix-guide.pdf',
-      'C': 'multitask-monster-fix-guide.pdf',
-      'D': 'chaos-starter-fix-guide.pdf',
-    }
-    return fileNames[resultType as keyof typeof fileNames] || 'fix-broken-window-guide.pdf' // Ensure fallback
-  }
   
   // Display loading state specific to data fetching
   if (loading) {
@@ -144,7 +115,7 @@ function ConfirmationContent() {
           <h2 className="mb-4 text-2xl font-semibold text-destructive">Payment Verification Failed</h2>
           <p className="mb-6 text-muted-foreground">{error}</p>
           <Button asChild>
-            <Link href="/">Return to Quiz</Link>
+            <Link href={ROUTES.HOME}>Return to Home</Link>
           </Button>
         </div>
       </div>
@@ -169,7 +140,7 @@ function ConfirmationContent() {
         {downloadInfo && (
           <>
             <h2 className="mb-4 text-xl font-semibold">
-              Your {getResultTitle(downloadInfo.resultType)} Fix Guide is Ready
+              Your {downloadInfo.resultType && getResultTitle(ACTIVE_QUIZ_TYPE, downloadInfo.resultType)} Fix Guide is Ready
             </h2>
             
             <p className="mb-6 text-sm text-muted-foreground">
@@ -198,7 +169,7 @@ function ConfirmationContent() {
         
         <div className="mt-6 text-center">
           <Button variant="outline" asChild>
-            <Link href="/">Take the Quiz Again</Link>
+            <Link href={ROUTES.QUIZ}>Take the Quiz Again</Link>
           </Button>
         </div>
       </div>

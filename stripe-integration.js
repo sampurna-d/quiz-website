@@ -101,7 +101,7 @@ function simulateSuccessfulPayment() {
         </div>
         <div class="download-section">
             <p>Your comprehensive guide to fixing broken windows is ready for download.</p>
-            <a href="downloads/fix-broken-window-guide.pdf" class="btn btn-accent cta-button" download>Download Your Guide</a>
+            <a href="downloads/doom-scroller-fix-guide.pdf" class="btn btn-accent cta-button" download>Download Your Guide</a>
             <p class="small-text">If you encounter any issues with your download, please contact our support team.</p>
         </div>
         <div class="additional-info">

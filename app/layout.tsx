@@ -2,14 +2,19 @@ import type React from "react"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Inter } from "next/font/google"
 import { Navbar } from "@/components/navbar"
+import { APP_NAME, APP_DESCRIPTION, APP_TAGLINE, LOGO } from "@/lib/config"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "Chobify | Smart Quizzes. Smarter Minds.",
-  description: "Take our personality quiz to discover your broken window and learn how to fix it.",
-  generator: 'v0.dev'
+  title: `${APP_NAME} | ${APP_TAGLINE}`,
+  description: APP_DESCRIPTION,
+  generator: 'v0.dev',
+  icons: {
+    icon: LOGO.ICON,
+    apple: LOGO.ICON,
+  },
 }
 
 export default function RootLayout({
@@ -19,6 +24,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href={LOGO.ICON} sizes="any" />
+      </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <Navbar />
